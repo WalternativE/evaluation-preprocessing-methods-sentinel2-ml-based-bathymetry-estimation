@@ -1,3 +1,4 @@
+from argparse import ArgumentError
 import os
 import glob
 import datetime
@@ -10,7 +11,7 @@ from eolearn.core import EOPatch, FeatureType
 from sentinelhub import BBox
 
 
-sentinel_2_1lc_bands = {
+sentinel_2_bands = {
     0: "B01",
     1: "B02",
     2: "B03",
@@ -47,6 +48,39 @@ def get_products_by_level(sentinel_archives, level):
     return products
 
 
+_available_sentinel_band_resolutions = ["10m", "20m", "60m"]
+
+
+def resolve_l2a_band_paths_highres_first(available_paths, requested_bands):
+    if len(requested_bands) < 1:
+        raise ArgumentError("No bands requested")
+
+    band_paths = []
+    for requested_band in requested_bands:
+        for available_path in available_paths:
+            info_parts = (
+                os.path.basename(available_path).split(".")[0].split("_")
+            )
+            if len(info_parts) < 4:
+                # proper band info ususally has 4 parts encoded in the file
+                # name - quality inspection data has less
+                continue
+
+            _, _, band_name, res = info_parts
+            for band_resolution in _available_sentinel_band_resolutions:
+                if band_resolution == res and band_name == requested_band:
+                    band_paths.append((band_name, available_path))
+                    break
+
+    if len(band_paths) < len(requested_bands):
+        raise ValueError(
+            "Not all bands could be resolved. Bands found were: "
+            + f"{[x[0] for x in band_paths]}"
+        )
+
+    return band_paths
+
+
 def construct_eopatch_from_sentinel_archive(
     sentinel_archive,
     bbox: BBox = None,
@@ -60,16 +94,24 @@ def construct_eopatch_from_sentinel_archive(
 
     bands_pattern = f"{sentinel_archive}/**/*.jp2"
     band_paths = glob.glob(bands_pattern, recursive=True)
-    bands_paths = [
-        (os.path.basename(path).split(".")[0].split("_")[-1], path)
-        for path in band_paths
-    ]
+
+    if level == "L1C":
+        bands_paths = [
+            (os.path.basename(path).split(".")[0].split("_")[-1], path)
+            for path in band_paths
+        ]
+    elif level == "L2A":
+        bands_paths = resolve_l2a_band_paths_highres_first(
+            band_paths, sentinel_2_bands.values()
+        )
+    else:
+        raise ValueError(f"Level {level} not supported")
 
     band_data_arrays = []
     agreed_bbox = None if bbox is None else bbox
     agreed_shape = None if target_shape is None else target_shape
     used_crs = None
-    for bandname in sentinel_2_1lc_bands.values():
+    for bandname in sentinel_2_bands.values():
         res_bandpath = [path for (bn, path) in bands_paths if bn == bandname]
         if len(res_bandpath) > 0:
             band_da = rx.open_rasterio(res_bandpath[0], driver="JP2OpenJPEG")
