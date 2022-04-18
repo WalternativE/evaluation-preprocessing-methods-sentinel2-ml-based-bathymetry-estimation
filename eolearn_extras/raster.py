@@ -1,5 +1,6 @@
 import numpy as np
 import rasterio as rio
+from rasterio.windows import Window
 from rasterio import MemoryFile
 from rasterio.enums import Resampling
 from eolearn.core import EOTask, EOPatch
@@ -120,6 +121,106 @@ class ReprojectRasterTask(EOTask):
                             if agreed_bbox is None:
                                 agreed_bbox = BBox(
                                     dst.bounds, crs=target_crs.to_epsg()
+                                )
+
+                            if times is not None:
+                                frames.append(np.moveaxis(dst.read(), 0, -1))
+                            else:
+                                single_frame = np.moveaxis(dst.read(), 0, -1)
+
+        result_eopatch = eopatch.copy()
+        result_eopatch[self.feature] = (
+            np.stack(frames, axis=0) if times is not None else single_frame
+        )
+        result_eopatch.bbox = agreed_bbox
+
+        return result_eopatch
+
+
+# clipping logic taken from https://github.com/rasterio/rasterio/blob/master/rasterio/rio/clip.py
+class ClipBoxTask(EOTask):
+    def __init__(
+        self,
+        feature,
+        target_bounds,
+        driver="GTiff",
+        resampling=Resampling.bilinear
+    ):
+        self.feature = feature
+        self.target_bounds = target_bounds
+        self.driver = driver
+        self.resampling = resampling
+
+    def execute(self, eopatch: EOPatch):
+        times = None
+        # timeless features only have 3 dimensions
+        if len(eopatch[self.feature].shape) == 3:
+            height, width, channels = eopatch[self.feature].shape
+        else:
+            times, height, width, channels = eopatch[self.feature].shape
+
+        dtype = eopatch[self.feature].dtype
+        crs = rio.crs.CRS.from_epsg(eopatch.bbox.crs.epsg)
+        transform = rio.transform.from_bounds(*eopatch.bbox, width, height)
+
+        agreed_bbox = None
+        single_frame = None
+        frames = []
+        repeats = 1 if times is None else times
+        for i in range(repeats):
+            with MemoryFile() as src_memfile:
+                with src_memfile.open(
+                    driver=self.driver,
+                    height=height,
+                    width=width,
+                    count=channels,
+                    dtype=dtype,
+                    crs=crs,
+                    transform=transform,
+                ) as src:
+
+                    for channel in range(channels):
+                        if times is None:
+                            src.write(
+                                eopatch[self.feature][:, :, channel],
+                                channel + 1,
+                            )
+                        else:
+                            src.write(
+                                eopatch[self.feature][i, :, :, channel],
+                                channel + 1,
+                            )
+
+                    target_bounds_window = src.window(*self.target_bounds)
+                    target_bounds_window = target_bounds_window.intersection(
+                        Window(0, 0, src.width, src.height)
+                    )
+                    out_window = target_bounds_window.round_lengths()
+                    out_height = int(out_window.height)
+                    out_width = int(out_window.width)
+
+                    kwargs = src.meta.copy()
+                    kwargs.update(
+                        {
+                            "crs": crs,
+                            "transform": src.window_transform(out_window),
+                            "width": out_width,
+                            "height": out_height,
+                        }
+                    )
+
+                    with MemoryFile() as dst_memfile:
+                        with dst_memfile.open(**kwargs) as dst:
+                            dst.write(
+                                src.read(
+                                    window=out_window,
+                                    out_shape=(src.count, out_height, out_width)
+                                )
+                            )
+
+                            if agreed_bbox is None:
+                                agreed_bbox = BBox(
+                                    dst.bounds, crs=crs.to_epsg()
                                 )
 
                             if times is not None:
