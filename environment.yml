@@ -371,3 +371,4 @@ dependencies:
     - opencv-contrib-python-headless==4.5.5.64
     - overpass==0.7
     - pillow==8.4.0
+    - python-dotenv==0.20.0
