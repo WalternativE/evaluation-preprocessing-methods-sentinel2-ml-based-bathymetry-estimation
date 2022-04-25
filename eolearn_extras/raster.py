@@ -17,6 +17,7 @@ class ReprojectRasterTask(EOTask):
         target_crs=None,
         driver="GTiff",
         resampling=Resampling.bilinear,
+        masked=False,
     ):
         if target_resolution is None and (
             target_width is None or target_height is None
@@ -33,6 +34,7 @@ class ReprojectRasterTask(EOTask):
         self.target_resolution = target_resolution
         self.driver = driver
         self.resampling = resampling
+        self.masked = masked
 
     def execute(self, eopatch: EOPatch):
         times = None
@@ -61,6 +63,7 @@ class ReprojectRasterTask(EOTask):
                     dtype=dtype,
                     crs=crs,
                     transform=transform,
+                    masked=self.masked,
                 ) as src:
 
                     for channel in range(channels):
@@ -116,11 +119,13 @@ class ReprojectRasterTask(EOTask):
                                     dst_transform=target_transform,
                                     dst_crs=target_crs,
                                     resampling=self.resampling,
+                                    masked=self.masked,
                                 )
 
                             if agreed_bbox is None:
                                 agreed_bbox = BBox(
-                                    dst.bounds, crs=target_crs.to_epsg()
+                                    dst.bounds,
+                                    crs=target_crs if type(target_crs) == str else target_crs.to_epsg()
                                 )
 
                             if times is not None:
