@@ -156,3 +156,6 @@ data/
 
 # users are encouraged to bring their own vscode settings
 .vscode/
+
+# models can be big - keep them in another place and link to them
+models/
