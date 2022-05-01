@@ -2,12 +2,13 @@ from argparse import ArgumentError
 import os
 import glob
 import datetime
+from pydoc import resolve
 
 import rioxarray as rx
 import rasterio as rio
 import numpy as np
 from rasterio.enums import Resampling
-from eolearn.core import EOPatch, FeatureType
+from eolearn.core import EOPatch, FeatureType, EOTask
 from sentinelhub import BBox
 
 
@@ -26,6 +27,10 @@ sentinel_2_bands = {
     11: "B11",
     12: "B12",
 }
+
+sentinel_2_l2a_bands = dict([
+    (k, v) for (k, v) in sentinel_2_bands.items() if v != 'B10'
+])
 
 
 def extract_meta_from_path(sentinel_archive):
@@ -55,6 +60,7 @@ def resolve_l2a_band_paths_highres_first(available_paths, requested_bands):
     if len(requested_bands) < 1:
         raise ArgumentError("No bands requested")
 
+    resolved_bands = []
     band_paths = []
     for requested_band in requested_bands:
         for available_path in available_paths:
@@ -70,7 +76,11 @@ def resolve_l2a_band_paths_highres_first(available_paths, requested_bands):
             for band_resolution in _available_sentinel_band_resolutions:
                 if band_resolution == res and band_name == requested_band:
                     band_paths.append((band_name, available_path))
+                    resolved_bands.append(band_name)
                     break
+
+            if requested_band in resolved_bands:
+                break
 
     if len(band_paths) < len(requested_bands):
         raise ValueError(
@@ -87,6 +97,8 @@ def construct_eopatch_from_sentinel_archive(
     target_shape=None,
     target_resolution=10,
     resampling_method=Resampling.bilinear,
+    requested_bands=None,
+    log_callback=None,
 ):
     eopatch = EOPatch()
 
@@ -95,6 +107,12 @@ def construct_eopatch_from_sentinel_archive(
     bands_pattern = f"{sentinel_archive}/**/*.jp2"
     band_paths = glob.glob(bands_pattern, recursive=True)
 
+    requested_bands = (
+        (sentinel_2_bands if level == 'L1C' else sentinel_2_l2a_bands) if
+        requested_bands is None else
+        requested_bands
+    )
+
     if level == "L1C":
         bands_paths = [
             (os.path.basename(path).split(".")[0].split("_")[-1], path)
@@ -102,16 +120,22 @@ def construct_eopatch_from_sentinel_archive(
         ]
     elif level == "L2A":
         bands_paths = resolve_l2a_band_paths_highres_first(
-            band_paths, sentinel_2_bands.values()
+            band_paths, requested_bands.values()
         )
     else:
         raise ValueError(f"Level {level} not supported")
+
+    if log_callback:
+        log_callback(f'Requested {len(requested_bands)} found {len(bands_paths)}.')
+
+    if len(bands_paths) < len(requested_bands):
+        raise ValueError(f'Requested {len(requested_bands)} but only found {len(bands_paths)}.')
 
     band_data_arrays = []
     agreed_bbox = None if bbox is None else bbox
     agreed_shape = None if target_shape is None else target_shape
     used_crs = None
-    for bandname in sentinel_2_bands.values():
+    for bandname in requested_bands.values():
         res_bandpath = [path for (bn, path) in bands_paths if bn == bandname]
         if len(res_bandpath) > 0:
             band_da = rx.open_rasterio(res_bandpath[0], driver="JP2OpenJPEG")
@@ -172,3 +196,32 @@ def construct_eopatch_from_sentinel_archive(
     eopatch.meta_info["mission"] = mission
 
     return eopatch
+
+
+class ReadSentinelArchiveTask(EOTask):
+    def __init__(
+        self,
+        bbox: BBox = None,
+        target_shape=None,
+        target_resolution=10,
+        resampling_method=Resampling.bilinear,
+        requested_bands=None,
+        log_callback=None
+    ):
+        self.bbox = bbox
+        self.target_shape = target_shape
+        self.target_resolution = target_resolution
+        self.resampling_method = resampling_method
+        self.requested_bands = requested_bands
+        self.log_callback = log_callback
+
+    def execute(self, sentinel_archive_path):
+        return construct_eopatch_from_sentinel_archive(
+            sentinel_archive_path,
+            self.bbox,
+            self.target_shape,
+            self.target_resolution,
+            self.resampling_method,
+            self.requested_bands,
+            self.log_callback
+        )
