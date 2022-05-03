@@ -1,6 +1,7 @@
 import os
 import glob
 import datetime
+import re
 
 import numpy as np
 
@@ -17,6 +18,14 @@ from eolearn.io import ImportFromTiffTask
 
 import rasterio as rio
 import eolearn_extras as eolx
+
+
+def enrich_acolite_path_with_datetime_information(acolite_folder_path: str):
+    acolite_date_pattern = r'(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})'
+    result = re.search(acolite_date_pattern, acolite_folder_path)
+    encoded_dt = datetime.datetime(*[int(x) for x in result.groups()])
+
+    return (encoded_dt, acolite_folder_path)
 
 
 def get_acolite_band_tif_paths(folder, product_type='L2R', reflectance_type='rhos'):
@@ -37,7 +46,8 @@ def get_eopatch_for_acolite_band_tif(band_tif_path, reference_bbox, feature, log
     reflectance_type, center_freq, ts = get_info_for_acolite_tif_path(band_tif_path)
 
     feature_type, feature_name = feature
-    feature = (feature_type, f'{feature_name}_{reflectance_type}_{center_freq}')
+    new_feature_name = f'{feature_name}_{reflectance_type}_{center_freq}'
+    feature = (feature_type, new_feature_name)
 
     import_acolite_band = ImportFromTiffTask(feature, band_tif_path)
     reproject_acolite_band = eolx.raster.ReprojectRasterTask(
@@ -69,7 +79,7 @@ def get_eopatch_for_acolite_band_tif(band_tif_path, reference_bbox, feature, log
             log_callback(msg)
         acolite_band_patch[feature][acolite_band_patch[feature] < 0] = 0
 
-    return acolite_band_patch
+    return new_feature_name, number_of_overcorrected_pixels, acolite_band_patch
 
 
 class ReadAcoliteProduct(EOTask):
@@ -94,7 +104,7 @@ class ReadAcoliteProduct(EOTask):
             reflectance_type=self.reflectance_type,
         )
 
-        acolite_image_bands = [
+        acolite_image_band_evaluations = [
             get_eopatch_for_acolite_band_tif(
                 os.path.abspath(x),
                 self.reference_bbox,
@@ -102,6 +112,7 @@ class ReadAcoliteProduct(EOTask):
                 log_callback=self.log_callback,
             ) for x in acolite_band_tifs
         ]
+        acolite_image_bands = [band for (_, _, band) in acolite_image_band_evaluations]
 
         merge_acolite_bands = MergeEOPatchesTask()
         acolite_eop = merge_acolite_bands.execute(*acolite_image_bands)
@@ -116,5 +127,13 @@ class ReadAcoliteProduct(EOTask):
         keys_to_delete = [x for x in acolite_eop[feature_type].keys() if x != feature_name]
         for key in keys_to_delete:
             del acolite_eop[(feature_type, key)]
+
+        overcorrection_info = dict(
+            [
+                (band_name, number_of_overcorrected_pixels) for
+                (band_name, number_of_overcorrected_pixels, _) in
+                acolite_image_band_evaluations]
+        )
+        acolite_eop.meta_info['acolite_overcorrection_info'] = overcorrection_info
 
         return acolite_eop

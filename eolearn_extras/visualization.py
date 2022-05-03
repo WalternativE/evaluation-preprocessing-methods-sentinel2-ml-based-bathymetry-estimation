@@ -1,8 +1,12 @@
 import numpy as np
+import pandas as pd
+
+import seaborn as sns
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 from eolearn.core import EOPatch
 import earthpy.plot as ep
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 sentinel_2_true_color = [3, 2, 1]
@@ -61,3 +65,40 @@ def plot_single_band(
         cmap=cmap,
         colorbar=colorbar,
     )
+
+
+def plot_band_histogram_rgb(eop, feature, mask_feature=None, ax=None, figsize=(8, 6), xlabel=None):
+    red_band = eop[feature][0,:,:,3]
+    green_band = eop[feature][0,:,:,2]
+    blue_band = eop[feature][0,:,:,1]
+    palette = ['red', 'green', 'blue']
+
+    if mask_feature:
+        mask_index = np.squeeze(eop[mask_feature] == 1)
+        red_band = red_band[mask_index]
+        green_band = green_band[mask_index]
+        blue_band = blue_band[mask_index]
+
+    red_band = red_band.flatten()
+    green_band = green_band.flatten()
+    blue_band = blue_band.flatten()
+
+    (_, feature_name) = feature
+    if ax:
+        bands = [red_band, green_band, blue_band]
+        for (band, color) in zip(bands, palette):
+            sns.histplot(band, kde=False, color=color, ax=ax).set(
+                title=f'RGB - {feature_name}',
+                xlabel=xlabel,
+            )
+
+        return ax
+    else:
+        plt.figure(figsize=figsize)
+        hist_df = pd.DataFrame({'red': red_band, 'green': green_band, 'blue': blue_band})
+        ax = sns.histplot(hist_df, palette=palette).set(
+            title=f'RGB - {feature_name}',
+            xlabel=xlabel,
+        )
+
+        return ax

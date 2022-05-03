@@ -98,6 +98,8 @@ def construct_eopatch_from_sentinel_archive(
     target_resolution=10,
     resampling_method=Resampling.bilinear,
     requested_bands=None,
+    digital_number_to_reflectance=False,
+    dn_reflectance_factor=10000,
     log_callback=None,
 ):
     eopatch = EOPatch()
@@ -178,7 +180,11 @@ def construct_eopatch_from_sentinel_archive(
             if agreed_shape is None:
                 agreed_shape = band_da.rio.shape
 
-            band_data_arrays.append(band_da.values[0])
+            band_data_values = band_da.values[0]
+            if digital_number_to_reflectance:
+                band_data_values = np.float32(band_data_values / dn_reflectance_factor)
+
+            band_data_arrays.append(band_data_values)
 
     if len(band_data_arrays) < 1:
         raise ValueError("No bands found in sentinel archive")
@@ -206,13 +212,17 @@ class ReadSentinelArchiveTask(EOTask):
         target_resolution=10,
         resampling_method=Resampling.bilinear,
         requested_bands=None,
-        log_callback=None
+        digital_number_to_reflectance=False,
+        dn_reflectance_factor=10000,
+        log_callback=None,
     ):
         self.bbox = bbox
         self.target_shape = target_shape
         self.target_resolution = target_resolution
         self.resampling_method = resampling_method
         self.requested_bands = requested_bands
+        self.digital_number_to_reflectance = digital_number_to_reflectance
+        self.dn_reflectance_factor = dn_reflectance_factor
         self.log_callback = log_callback
 
     def execute(self, sentinel_archive_path):
@@ -223,5 +233,7 @@ class ReadSentinelArchiveTask(EOTask):
             self.target_resolution,
             self.resampling_method,
             self.requested_bands,
-            self.log_callback
+            self.digital_number_to_reflectance,
+            self.dn_reflectance_factor,
+            self.log_callback,
         )
