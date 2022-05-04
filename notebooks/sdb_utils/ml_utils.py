@@ -1,6 +1,8 @@
+import os
 from enum import IntEnum
 import numpy as np
 from eolearn.core import FeatureType
+import optuna.integration.lightgbm as lgb
 
 
 class SplitType(IntEnum):
@@ -63,3 +65,39 @@ def get_masked_map(eop, data_feature, mask_feature):
     masked_map[masked_index] = eop[data_feature][masked_index]
 
     return masked_map
+
+
+def create_train_val_set(eop, data_feature):
+    X_train, y_train = get_X_y_for_split(
+        eop,
+        split_type=SplitType.Train,
+        data_feature=data_feature,
+        label_feature=(FeatureType.DATA_TIMELESS, 'bathy_data'),
+    )
+    train_ds = lgb.Dataset(X_train, label=y_train)
+
+    X_val, y_val = get_X_y_for_split(
+        eop,
+        split_type=SplitType.Validation,
+        data_feature=data_feature,
+        label_feature=(FeatureType.DATA_TIMELESS, 'bathy_data'),
+    )
+    val_ds = lgb.Dataset(X_val, label=y_val)
+
+
+    return train_ds, val_ds
+
+
+def write_optuna_capture_to_logs(log_dir, capt):
+    ld_abs = os.path.abspath(log_dir)
+    if not os.path.exists(ld_abs):
+        os.makedirs(ld_abs)
+
+    stdout_path = os.path.join(ld_abs, 'optimization_stdout.txt')
+    stderr_path = os.path.join(ld_abs, 'optimization_stderr.txt')
+
+    with open(stdout_path, 'w') as f:
+        f.write(capt.stdout)
+
+    with open(stderr_path, 'w') as f:
+        f.write(capt.stderr)
