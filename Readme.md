@@ -4,6 +4,11 @@ The goal of this project is to look at the influence of different preprocessing 
 their influence on traditional algorithms like the Stumpf Log-Ratio Method (Stumpf et al., 2003) in contrast to modern
 approaches like LightGBM (Ke et al., 2017).
 
+## ⚠ WIP Warning ⚠
+
+The content of this repository is still work in progress. The modules and notebooks still need to be documented and
+the conference paper still needs to be finished and linked correctly.
+
 ## Analysis Areas of Interest
 
 The analysis looks at three different areas:
