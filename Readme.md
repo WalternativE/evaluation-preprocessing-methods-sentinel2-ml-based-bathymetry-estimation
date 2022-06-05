@@ -43,11 +43,42 @@ The Bathymetry Sources are:
 
 ## Computing Environment
 
-This project was mainly executed on a Laptop PC. // TODO: add exact description and link to python env
+This project was mainly executed on a Laptop PC (Lenovo ThinkPad E14 Gen 2, Intel Core(TM) i7-1165G7, 32 GB RAM, Windows 10 21 H2).
+While especially the modelling notebooks can make good use of additional CPU resources a machine with lower specs should be still
+sufficient to repeat all processing steps. Windows users should be able to directly recreate the
+[conda](https://docs.conda.io/en/latest/) from the `environment.yml` file in this repository. Linux and macOS users will need to
+adapt the environment as some transitive dependencies are currently locked at Windows specific versions.
 
 ## Interpretation of Notebook Order
 
-// TODO: add description of sense behind order
+In the `notebooks` directory of this repository you will find numerated Jupyter Notebooks which can be subdivided into the following
+process steps:
+
+- Bathymetry Map Preprocessing (
+  [00 - Puerto Rico](notebooks/00__preparing_puerto_rico_bathy_aoi.ipynb),
+  [01 - Bahamas](notebooks/01__preparing_bahamas_bathy_aoi.ipynb),
+  [03 - Mille Lacs Lake](notebooks/03__preparing_mille_lacs_bathy_aoi.ipynb))
+- Sentinel-2 Data Preprocessing and Dataset Merge (
+  [04 - Puerto Rico](notebooks/04__dataset_preparation_puerto_rico.ipynb),
+  [05 - Bahamas](notebooks/05__dataset_preparation_bahamas.ipynb),
+  [06 - Mille Lacs Lake](notebooks/06__dataset_preparation_mille_lacs.ipynb))
+- Stumpf Log-Regression Fitting and Evaluation (
+  [07 - Puerto Rico](notebooks/07__stumpf_log_regression_puerto_rico.ipynb),
+  [08 - Bahamas](notebooks/08__stumpf_log_regression_bahamas.ipynb),
+  [09 - Mille Lacs Lake](notebooks/09__stumpf_log_regression_mille_lacs.ipynb))
+- LightGBM Fitting and Evaluation (
+  [10 - Puerto Rico](notebooks/10__lgbm_calibration_puerto_rico.ipynb),
+  [11 - Bahamas](notebooks/11__lgbm_calibration_bahamas.ipynb),
+  [12 - Mille Lacs Lake](notebooks/12__lgbm_calibration_mille_lacs.ipynb))
+
+Each notebook includes a detailed description of the current context and each taken step. If you wish to read a more condensed
+writeup of the project please feel free to follow the link to my conference paper.
+
+## Python Sources
+
+While working on this project I produced a rather generic `eolearn_extras` module which contains some eo-learn tasks which could
+be useful to others and a less generic collection of helper code in the `notebooks/sdb_utils` directory. All the code is available
+freely under the MIT license. If you find any bugs or need further assistance please don't hesitate to open an issue.
 
 ## Approach
 
