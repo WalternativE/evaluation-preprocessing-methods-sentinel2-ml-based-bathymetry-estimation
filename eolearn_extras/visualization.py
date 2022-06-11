@@ -67,7 +67,7 @@ def plot_single_band(
     )
 
 
-def plot_band_histogram_rgb(eop, feature, mask_feature=None, ax=None, figsize=(8, 6), xlabel=None):
+def plot_band_histogram_rgb(eop, feature, mask_feature=None, ax=None, figsize=(8, 6), xlabel=None, clip_value=None):
     red_band = eop[feature][0,:,:,3]
     green_band = eop[feature][0,:,:,2]
     blue_band = eop[feature][0,:,:,1]
@@ -78,6 +78,11 @@ def plot_band_histogram_rgb(eop, feature, mask_feature=None, ax=None, figsize=(8
         red_band = red_band[mask_index]
         green_band = green_band[mask_index]
         blue_band = blue_band[mask_index]
+
+    if clip_value:
+        red_band = red_band[red_band <= clip_value]
+        green_band = green_band[green_band <= clip_value]
+        blue_band = blue_band[blue_band <= clip_value]
 
     red_band = red_band.flatten()
     green_band = green_band.flatten()
