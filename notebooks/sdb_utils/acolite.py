@@ -42,7 +42,7 @@ def get_info_for_acolite_tif_path(acolite_tif_path):
     return reflectance_type, center_freq, datetime.datetime(int(year), int(month), int(day), int(hour), int(minute), int(second))
 
 
-def get_eopatch_for_acolite_band_tif(band_tif_path, reference_bbox, feature, log_callback=None):
+def get_eopatch_for_acolite_band_tif(band_tif_path, reference_bbox, feature, target_resolution=(10, 10), log_callback=None):
     reflectance_type, center_freq, ts = get_info_for_acolite_tif_path(band_tif_path)
 
     feature_type, feature_name = feature
@@ -53,7 +53,7 @@ def get_eopatch_for_acolite_band_tif(band_tif_path, reference_bbox, feature, log
     reproject_acolite_band = eolx.raster.ReprojectRasterTask(
         feature,
         target_crs=rio.crs.CRS.from_epsg(reference_bbox.crs.epsg),
-        target_resolution=(10, 10)
+        target_resolution=target_resolution
     )
     clip_acolite_band = eolx.raster.ClipBoxTask(feature, target_bounds=reference_bbox)
 
@@ -89,12 +89,14 @@ class ReadAcoliteProduct(EOTask):
         feature,
         acolite_product='L2R',
         reflectance_type='rhos',
+        target_resolution=(10, 10),
         log_callback=None
     ):
         self.reference_bbox = reference_bbox
         self.acolite_product = acolite_product
         self.reflectance_type = reflectance_type
         self.feature = feature
+        self.target_resolution = target_resolution
         self.log_callback = log_callback
 
     def execute(self, acolite_product_folder):
@@ -109,6 +111,7 @@ class ReadAcoliteProduct(EOTask):
                 os.path.abspath(x),
                 self.reference_bbox,
                 self.feature,
+                target_resolution=self.target_resolution,
                 log_callback=self.log_callback,
             ) for x in acolite_band_tifs
         ]
