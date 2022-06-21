@@ -6,8 +6,15 @@ approaches like LightGBM (Ke et al., 2017).
 
 ## ⚠ WIP Warning ⚠
 
-The content of this repository is still work in progress. The modules and notebooks still need to be documented and
-the conference paper still needs to be finished and linked correctly.
+As of now the conference paper still needs to be published and linked to this repository.
+
+## Bitrot Disclaimer
+
+While I tried to make sure that everything in this repository can be inspected and executed by interested readers, I am aware that
+after a while newer Python and package versions will break the project's code. I provide an `environment.yml` file that documents
+the exact versions of all dependencies I used on my system. I also documented each notebook in a way that should make the intention
+of each step very clear, so that even if a reader wants to migrate the complete analysis or just parts to another language or environment,
+this can be done even without using the provided code.
 
 ## Analysis Areas of Interest
 
@@ -28,11 +35,7 @@ The data used for this environment consists of:
 - Bathymetry maps from various sources
 - Sentinel-2 L1C scenes and derived L2A and Acolite products
 
-I will share the shapefiles as well as the analysis ready EOPatches as part of the Zenodo artifacts. As I am not the owner
-of the original source data I will not distribute but rather document their origin for interested readers to reproduce.
-
-If you experience problems reproducing the source data set reach out to me at `gregor_beyerle (at) outlook (dot) com` and I will
-do my best to provide you with the access you need.
+The data needed to reproduce this analysis will be shared with the accompanying paper on Zenodo.
 
 The Bathymetry Sources are:
 
@@ -71,8 +74,9 @@ process steps:
   [11 - Bahamas](notebooks/11__lgbm_calibration_bahamas.ipynb),
   [12 - Mille Lacs Lake](notebooks/12__lgbm_calibration_mille_lacs.ipynb))
 
-Each notebook includes a detailed description of the current context and each taken step. If you wish to read a more condensed
-writeup of the project please feel free to follow the link to my conference paper.
+Each notebook includes a detailed description of the current context and each taken step. I tried to document each notebook in a way
+that they can also be read in isolation. In some instances (especially when comparing results) I add references to other notebooks.
+If you wish to read a more condensed writeup of the project please feel free to follow the link to my conference paper.
 
 ## Python Sources
 
@@ -113,72 +117,10 @@ processors.
 </p>
 
 All further processing of the acquired raster images to create analysis ready data (ARD) is done using
-the [eo-learn framework](https://eo-learn.readthedocs.io/en/latest/). We either use the complete bounding
-box of the bathymetry map or a prepared bounding box (supplied as a shape file) to crop or subset the
-ground truth image and all other consecutive images. Depending on the Sentinel-2 scenes coordinate reference
-system (CRS) - Sentinel-2 L1C scenes use the most fitting Universal Transverse Mercator (UTM) projection
-in relation to the scene location - we reproject the bathymetry data to avoid further reprojections down
-then line with the Sentinel-2 products. Sentinel-2 bands have at most a resolution of ten-by-ten meters so we
-also resample the bathymetry data accordingly.
+the [eo-learn framework](https://eo-learn.readthedocs.io/en/latest/). You can fnd a detailed description of all
+steps for data preprocessing, modelling and model evaluation in the notebooks folder of this repository.
 
 ![General Approach Schematic](diagrams/diagram_exports/approach_schematic.drawio.png)
 <p align="center">
     <b id="fig-1">Fig 1: General analysis approach</b>
 </p>
-
-## Original Dataset Description
-
-In case you wand to reproduce the exact data directory you will most likely find this tree representation
-helpful. The information
-[encoded into Sentinel-2 product names](https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-2-msi/naming-convention)
-should allow you to find and retrieve them. Should you need additional information do not hesitate to reach out.
-
-```bash
-sdb_datasets
-├── eopatches
-│   ├── bahamas_bathy_eop
-│   ├── bahamas_sentinel_merged
-│   ├── mille_lacs_bathy_eop
-│   ├── mille_lacs_sentinel_merged
-│   ├── puerto_rico_bathy_eop
-│   └── puerto_rico_sentinel_merged
-├── mille_lacs.tiff
-├── ncei_nos_bag_puerto_rico.tiff
-├── sentinel_bahamas
-│   ├── S2A_MSIL1C_20211019T155531_N0301_R011_T17RQJ_20211019T192647.SAFE
-│   ├── S2A_MSIL2A_20211019T155531_N9999_R011_T17RQJ_20220423T204757.SAFE
-│   └── S2A_MSI_20211019T155531_ACOLITE_SUBSET
-├── sentinel_mille_lacs
-│   ├── S2A_20210429T170851_ACOLITE_SUBSET
-│   ├── S2A_MSIL1C_20210429T170851_N0300_R112_T15TVM_20210429T215623.SAFE
-│   ├── S2A_MSIL1C_20210916T170941_N0301_R112_T15TVM_20210916T210302.SAFE
-│   ├── S2A_MSIL1C_20211016T171311_N0301_R112_T15TVM_20211016T191815.SAFE
-│   └── S2A_MSIL2A_20210429T170851_N9999_R112_T15TVM_20220501T111454.SAFE
-├── sentinel_puerto_rico
-│   ├── S2B_MSIL1C_20210502T150719_N0300_R082_T19QFA_20210502T164912.SAFE
-│   ├── S2B_MSIL2A_20210502T150719_N9999_R082_T19QFA_20220425T153242.SAFE
-│   └── S2B_MSI_20210502T150719_ACOLITE_SUBSET
-├── shapes
-│   ├── sbd_bahamas_aoi.cpg
-│   ├── sbd_bahamas_aoi.dbf
-│   ├── sbd_bahamas_aoi.prj
-│   ├── sbd_bahamas_aoi.qmd
-│   ├── sbd_bahamas_aoi.shp
-│   ├── sbd_bahamas_aoi.shx
-│   ├── sdb_puerto_rico_aoi.cpg
-│   ├── sdb_puerto_rico_aoi.dbf
-│   ├── sdb_puerto_rico_aoi.prj
-│   ├── sdb_puerto_rico_aoi.shp
-│   ├── sdb_puerto_rico_aoi.shx
-│   ├── vectorized_outline_mille_lacs.cpg
-│   ├── vectorized_outline_mille_lacs.dbf
-│   ├── vectorized_outline_mille_lacs.prj
-│   ├── vectorized_outline_mille_lacs.shp
-│   ├── vectorized_outline_mille_lacs.shx
-│   ├── vectorized_outline_mille_lacs_minus_30m_buffer.cpg
-│   ├── vectorized_outline_mille_lacs_minus_30m_buffer.dbf
-│   ├── vectorized_outline_mille_lacs_minus_30m_buffer.prj
-│   ├── vectorized_outline_mille_lacs_minus_30m_buffer.shp
-│   └── vectorized_outline_mille_lacs_minus_30m_buffer.shx
-└── target_bahamas.tif
-```
