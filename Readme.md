@@ -8,7 +8,7 @@ approaches like LightGBM (Ke et al., 2017).
 
 As of now the conference paper still needs to be published and linked to this repository.
 
-## Bitrot Disclaimer
+## Bit Rot Disclaimer
 
 While I tried to make sure that everything in this repository can be inspected and executed by interested readers, I am aware that
 after a while newer Python and package versions will break the project's code. I provide an `environment.yml` file that documents
