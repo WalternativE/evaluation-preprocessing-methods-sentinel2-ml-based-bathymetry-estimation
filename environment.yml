@@ -1,5 +1,6 @@
 name: eo-learn
 channels:
+  - plotly
   - conda-forge
   - defaults
 dependencies:
@@ -34,10 +35,10 @@ dependencies:
   - brotlipy=0.7.0=py38h294d835_1003
   - bzip2=1.0.8=h8ffe710_4
   - c-blosc2=2.0.4=h09319c2_1
-  - ca-certificates=2021.10.8=h5b45459_0
+  - ca-certificates=2022.6.15=h5b45459_0
   - cairo=1.16.0=hb19e0ff_1008
   - cartopy=0.20.2=py38h436f59c_1
-  - certifi=2021.10.8=py38haa244fe_2
+  - certifi=2022.6.15=py38haa244fe_0
   - cffi=1.15.0=py38hd8c33c5_0
   - cfitsio=4.0.0=hd67004f_0
   - charls=2.3.4=h39d44d4_0
@@ -223,7 +224,7 @@ dependencies:
   - oauthlib=3.2.0=pyhd8ed1ab_0
   - opencv=4.5.5=py38haa244fe_3
   - openjpeg=2.4.0=hb211442_1
-  - openssl=1.1.1n=h8ffe710_0
+  - openssl=1.1.1o=h8ffe710_0
   - optuna=2.10.0=pyhd8ed1ab_0
   - packaging=21.3=pyhd8ed1ab_0
   - pandas=1.4.1=py38h5d928e2_0
@@ -242,6 +243,7 @@ dependencies:
   - pip=22.0.4=pyhd8ed1ab_0
   - pixman=0.40.0=h8ffe710_0
   - platformdirs=2.5.1=pyhd8ed1ab_0
+  - plotly-orca=1.3.1=1
   - poppler=21.11.0=h24fffdf_0
   - poppler-data=0.4.11=hd8ed1ab_0
   - postgresql=13.5=h1c22c4f_1
@@ -250,6 +252,7 @@ dependencies:
   - prometheus_client=0.13.1=pyhd8ed1ab_0
   - prompt-toolkit=3.0.27=pyha770c72_0
   - prompt_toolkit=3.0.27=hd8ed1ab_0
+  - psutil=5.9.1=py38h294d835_0
   - pthread-stubs=0.4=hcd874cb_1001
   - pure_eval=0.2.2=pyhd8ed1ab_0
   - py-opencv=4.5.5=py38h595d716_3
