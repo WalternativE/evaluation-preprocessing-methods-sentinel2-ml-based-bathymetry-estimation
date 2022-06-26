@@ -1,4 +1,4 @@
-# Evaluation of Preprocessing Methods of Sentinel-2 Data and their Impact on Traditional and Modern Empirical Satellite Derived Bathymetry Estimations
+# Evaluation of Preprocessing Methods of Sentinel-2 Data and their Impact on Traditional Empirical and Modern Machine Learning Based Satellite Derived Bathymetry Methods
 
 The goal of this project is to look at the influence of different preprocessing methods for Sentinel-2 data products and
 their influence on traditional algorithms like the Stumpf Log-Ratio Method (Stumpf et al., 2003) in contrast to modern
@@ -60,19 +60,19 @@ process steps:
 - Bathymetry Map Preprocessing (
   [00 - Puerto Rico](notebooks/00__preparing_puerto_rico_bathy_aoi.ipynb),
   [01 - Bahamas](notebooks/01__preparing_bahamas_bathy_aoi.ipynb),
-  [03 - Mille Lacs Lake](notebooks/03__preparing_mille_lacs_bathy_aoi.ipynb))
+  [02 - Mille Lacs Lake](notebooks/02__preparing_mille_lacs_bathy_aoi.ipynb))
 - Sentinel-2 Data Preprocessing and Dataset Merge (
-  [04 - Puerto Rico](notebooks/04__dataset_preparation_puerto_rico.ipynb),
-  [05 - Bahamas](notebooks/05__dataset_preparation_bahamas.ipynb),
-  [06 - Mille Lacs Lake](notebooks/06__dataset_preparation_mille_lacs.ipynb))
+  [03 - Puerto Rico](notebooks/03__dataset_preparation_puerto_rico.ipynb),
+  [04 - Bahamas](notebooks/04__dataset_preparation_bahamas.ipynb),
+  [05 - Mille Lacs Lake](notebooks/05__dataset_preparation_mille_lacs.ipynb))
 - Stumpf Log-Regression Fitting and Evaluation (
-  [07 - Puerto Rico](notebooks/07__stumpf_log_regression_puerto_rico.ipynb),
-  [08 - Bahamas](notebooks/08__stumpf_log_regression_bahamas.ipynb),
-  [09 - Mille Lacs Lake](notebooks/09__stumpf_log_regression_mille_lacs.ipynb))
+  [06 - Puerto Rico](notebooks/06__stumpf_log_regression_puerto_rico.ipynb),
+  [07 - Bahamas](notebooks/07__stumpf_log_regression_bahamas.ipynb),
+  [08 - Mille Lacs Lake](notebooks/08__stumpf_log_regression_mille_lacs.ipynb))
 - LightGBM Fitting and Evaluation (
-  [10 - Puerto Rico](notebooks/10__lgbm_calibration_puerto_rico.ipynb),
-  [11 - Bahamas](notebooks/11__lgbm_calibration_bahamas.ipynb),
-  [12 - Mille Lacs Lake](notebooks/12__lgbm_calibration_mille_lacs.ipynb))
+  [09 - Puerto Rico](notebooks/09__lgbm_calibration_puerto_rico.ipynb),
+  [10 - Bahamas](notebooks/10__lgbm_calibration_bahamas.ipynb),
+  [11 - Mille Lacs Lake](notebooks/11__lgbm_calibration_mille_lacs.ipynb))
 
 Each notebook includes a detailed description of the current context and each taken step. I tried to document each notebook in a way
 that they can also be read in isolation. In some instances (especially when comparing results) I add references to other notebooks.
